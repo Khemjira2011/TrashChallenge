@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trash Challenge</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <div class="profile">👤</div>
+
+        <div class="score">⭐ <span id="homeScore">0</span></div>
+
+        <h1>
+            ♻️ Trash<br>
+            <span>Challenge!</span>
+        </h1>
+
+        <p class="subtitle">
+            คัดก่อนทิ้ง แยกให้ถูกที่
+        </p>
+
+        <button class="start-btn" onclick="startGame()">
+            ▶ เริ่มเกม
+        </button>
+
+        <button class="knowledge-btn" onclick="showScanner()">
+            📷 สแกนขยะ
+        </button>
+
+        <button class="knowledge-btn" onclick="showKnowledge()">
+            📖 โหมดความรู้
+        </button>
+
+        <div class="bottom-menu">
+
+            <div onclick="location.reload()" style="cursor:pointer;">
+                🏠<br>
+                <small>หน้าหลัก</small>
+            </div>
+        
+            <div onclick="showScore()" style="cursor:pointer;">
+                ⭐<br>
+                <small>คะแนน</small>
+            </div>
+        
+            <div onclick="showMission()" style="cursor:pointer;">
+                🎯<br>
+                <small>ภารกิจ</small>
+            </div>
+        
+            <div onclick="showSettings()" style="cursor:pointer;">
+                ⚙️<br>
+                <small>ตั้งค่า</small>
+            </div>
+        
+        </div>
+
+    </div>
+
+   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js"></script>
+
+<script>
+    console.log("TensorFlow:", typeof tf);
+    console.log("MobileNet:", typeof mobilenet);
+</script>
+
+<script src="script.js"></script>
+</body>
+</html>
