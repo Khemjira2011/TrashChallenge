@@ -469,25 +469,51 @@ function showScanner() {
     document.querySelector(".app").innerHTML = `
         <h1>📷 สแกนขยะ</h1>
 
-        <p>ถ่ายรูปหรือเลือกรูปขยะ</p>
+        <p>ถ่ายรูปขยะเพื่อให้ AI วิเคราะห์</p>
 
         <div style="
             background:#e8f5e2;
-            padding:30px;
+            padding:20px;
             border-radius:25px;
             margin:25px 0;
+            text-align:center;
         ">
-            <div style="font-size:70px;">📸</div>
+
+            <video id="camera" autoplay playsinline style="
+                width:100%;
+                max-width:400px;
+                border-radius:20px;
+                display:none;
+            "></video>
+
+            <canvas id="canvas" style="display:none;"></canvas>
+
+            <img id="preview" style="
+                width:100%;
+                max-width:400px;
+                border-radius:20px;
+                display:none;
+            ">
+
+            <br>
+
+            <button onclick="startCamera()">
+                📷 เปิดกล้อง
+            </button>
+
+            <button onclick="takePhoto()" id="takeBtn" style="display:none;">
+                📸 ถ่ายรูป
+            </button>
 
             <input
                 id="trashImage"
                 type="file"
                 accept="image/*"
-                capture="environment"
                 style="
                     width:100%;
                     padding:15px;
                     font-size:16px;
+                    margin-top:10px;
                 "
             >
         </div>
@@ -500,6 +526,51 @@ function showScanner() {
             🏠 กลับหน้าหลัก
         </button>
     `;
+}
+
+let cameraStream;
+
+async function startCamera() {
+    const video = document.getElementById("camera");
+    const takeBtn = document.getElementById("takeBtn");
+
+    try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" },
+            audio: false
+        });
+
+        video.srcObject = cameraStream;
+        video.style.display = "block";
+        takeBtn.style.display = "inline-block";
+
+    } catch (error) {
+        alert("ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตการใช้กล้อง");
+        console.error(error);
+    }
+}
+
+function takePhoto() {
+    const video = document.getElementById("camera");
+    const canvas = document.getElementById("canvas");
+    const preview = document.getElementById("preview");
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const context = canvas.getContext("2d");
+    context.drawImage(video, 0, 0);
+
+    preview.src = canvas.toDataURL("image/jpeg");
+    preview.style.display = "block";
+
+    video.style.display = "none";
+
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+    }
+
+    alert("ถ่ายรูปสำเร็จ! 📸");
 }
 
 function previewImage(event) {
