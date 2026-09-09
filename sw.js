@@ -1,4 +1,4 @@
-const CACHE_NAME = "trash-challenge-v1";
+const CACHE_NAME = "trash-challenge-v2";
 
 const FILES_TO_CACHE = [
     "./",
