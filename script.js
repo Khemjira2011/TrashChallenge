@@ -529,6 +529,7 @@ function showScanner() {
 }
 
 let cameraStream;
+let cameraImageData = null;
 
 async function startCamera() {
     const video = document.getElementById("camera");
@@ -555,22 +556,34 @@ function takePhoto() {
     const canvas = document.getElementById("canvas");
     const preview = document.getElementById("preview");
 
+    if (!video.videoWidth || !video.videoHeight) {
+        alert("กล้องยังไม่พร้อม กรุณารอสักครู่แล้วลองใหม่");
+        return;
+    }
+
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
     const context = canvas.getContext("2d");
     context.drawImage(video, 0, 0);
 
-    preview.src = canvas.toDataURL("image/jpeg");
+    // เก็บรูปที่ถ่ายไว้สำหรับส่งให้ AI
+    cameraImageData = canvas.toDataURL("image/jpeg");
+
+    // แสดงรูปที่ถ่าย
+    preview.src = cameraImageData;
     preview.style.display = "block";
 
+    // ซ่อนกล้อง
     video.style.display = "none";
 
+    // ปิดกล้องหลังถ่าย
     if (cameraStream) {
         cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
     }
 
-    alert("ถ่ายรูปสำเร็จ! 📸");
+    alert("ถ่ายรูปสำเร็จ! 📸 กด 'วิเคราะห์ภาพ' ได้เลย");
 }
 
 function previewImage(event) {
@@ -878,16 +891,26 @@ function analyzeImage(imageURL) {
     `;
 }
 
-async function handleImage() {
+function handleImage() {
     const input = document.getElementById("trashImage");
 
-    if (!input || !input.files[0]) {
+    let imageURL = null;
+
+    // ถ่ายรูปจากกล้อง
+    if (cameraImageData) {
+        imageURL = cameraImageData;
+    }
+
+    // หรือเลือกรูปจากไฟล์
+    else if (input && input.files[0]) {
+        imageURL = URL.createObjectURL(input.files[0]);
+    }
+
+    // ยังไม่มีรูป
+    else {
         alert("กรุณาถ่ายรูปหรือเลือกรูปขยะก่อน 📷");
         return;
     }
-
-    const file = input.files[0];
-    const imageURL = URL.createObjectURL(file);
 
     document.querySelector(".app").innerHTML = `
         <h1>🤖 AI กำลังวิเคราะห์...</h1>
@@ -905,6 +928,7 @@ async function handleImage() {
             padding:25px;
             border-radius:25px;
             margin:20px 0;
+            text-align:center;
         ">
             <div style="font-size:60px;">🔍</div>
             <h2>กำลังวิเคราะห์ภาพ</h2>
@@ -979,6 +1003,8 @@ async function handleImage() {
         }
     };
 
+        image.src = imageURL;
+
     image.onerror = function () {
         document.querySelector(".app").innerHTML = `
             <h1>⚠️ เปิดรูปไม่สำเร็จ</h1>
@@ -986,6 +1012,10 @@ async function handleImage() {
 
             <button onclick="showScanner()">
                 📷 ลองใหม่
+            </button>
+
+            <button onclick="goHome()">
+                🏠 กลับหน้าหลัก
             </button>
         `;
     };
@@ -1038,8 +1068,6 @@ function showAIResult(imageURL, detectedObject, probability) {
     const object = detectedObject.toLowerCase();
 
     let correctType = null;
-    let binName = "";
-    let binIcon = "";
 
     // ♻️ รีไซเคิล
     if (
@@ -1051,8 +1079,6 @@ function showAIResult(imageURL, detectedObject, probability) {
         object.includes("packet")
     ) {
         correctType = "recycle";
-        binName = "ขยะรีไซเคิล";
-        binIcon = "🟢";
     }
 
     // 🟤 อินทรีย์
@@ -1064,8 +1090,6 @@ function showAIResult(imageURL, detectedObject, probability) {
         object.includes("fruit")
     ) {
         correctType = "organic";
-        binName = "ขยะอินทรีย์";
-        binIcon = "🟤";
     }
 
     // 🔴 อันตราย
@@ -1074,18 +1098,20 @@ function showAIResult(imageURL, detectedObject, probability) {
         object.includes("lightbulb")
     ) {
         correctType = "danger";
-        binName = "ขยะอันตราย";
-        binIcon = "🔴";
     }
 
     // 🔵 ทั่วไป
     else {
         correctType = "general";
-        binName = "ขยะทั่วไป";
-        binIcon = "🔵";
     }
 
-    const percent = Math.round(probability * 100);
+    // เก็บข้อมูล AI ไว้รอเฉลย
+    window.aiResult = {
+        imageURL: imageURL,
+        detectedObject: detectedObject,
+        probability: probability,
+        correctType: correctType
+    };
 
     document.querySelector(".app").innerHTML = `
 
@@ -1095,122 +1121,60 @@ function showAIResult(imageURL, detectedObject, probability) {
                 <div class="ai-header-icon">🤖</div>
 
                 <div>
-                    <h1>AI วิเคราะห์สำเร็จ</h1>
-                    <p>ระบบตรวจพบวัตถุจากภาพของคุณ</p>
+                    <h1>AI วิเคราะห์ภาพแล้ว</h1>
+                    <p>ถึงเวลาทายแล้ว!</p>
                 </div>
             </div>
-
 
             <div class="ai-image-card">
 
-                <img src="${imageURL}" class="ai-result-image">
-
-                <div class="scan-success">
-                    <span>✓</span>
-                    วิเคราะห์ภาพเรียบร้อย
-                </div>
+                <img
+                    src="${imageURL}"
+                    class="ai-result-image"
+                >
 
             </div>
-
-
-            <div class="ai-detection-card">
-
-                <div class="section-title">
-                    🔍 สิ่งที่ AI ตรวจพบ
-                </div>
-
-                <div class="detected-object">
-                    ${detectedObject}
-                </div>
-
-                <div class="confidence">
-
-                    <div class="confidence-top">
-                        <span>ความมั่นใจ</span>
-                        <strong>${percent}%</strong>
-                    </div>
-
-                    <div class="confidence-bar">
-                        <div
-                            class="confidence-fill"
-                            style="width:${percent}%"
-                        ></div>
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div class="ai-bin-card">
-
-                <div class="section-title">
-                    🗑️ ประเภทที่ระบบประเมิน
-                </div>
-
-                <div class="recommended-bin">
-                    <div class="bin-big-icon">
-                        ${binIcon}
-                    </div>
-
-                    <div>
-                        <div class="recommended-label">
-                            ควรทิ้งลง
-                        </div>
-
-                        <div class="recommended-name">
-                            ${binName}
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
 
             <div class="choose-title">
-                🗑️ เลือกถังขยะ
+                🗑️ คุณคิดว่าขยะชิ้นนี้ควรทิ้งถังไหน?
             </div>
 
             <p class="choose-subtitle">
-                คุณคิดว่า AI วิเคราะห์ถูกหรือไม่?
+                เลือกคำตอบก่อน แล้วดูว่า AI วิเคราะห์ถูกหรือไม่
             </p>
-
 
             <div class="bin-grid">
 
                 <button
                     class="bin-button recycle"
-                    onclick="checkTrashBin('${correctType}', 'recycle')"
+                    onclick="answerAI('recycle')"
                 >
                     <span>🟢</span>
                     <strong>รีไซเคิล</strong>
                     <small>Recycle</small>
                 </button>
 
-
                 <button
                     class="bin-button general"
-                    onclick="checkTrashBin('${correctType}', 'general')"
+                    onclick="answerAI('general')"
                 >
                     <span>🔵</span>
                     <strong>ทั่วไป</strong>
                     <small>General</small>
                 </button>
 
-
                 <button
                     class="bin-button organic"
-                    onclick="checkTrashBin('${correctType}', 'organic')"
+                    onclick="answerAI('organic')"
                 >
                     <span>🟤</span>
                     <strong>อินทรีย์</strong>
                     <small>Organic</small>
                 </button>
 
-
                 <button
                     class="bin-button danger"
-                    onclick="checkTrashBin('${correctType}', 'danger')"
+                    onclick="answerAI('danger')"
                 >
                     <span>🔴</span>
                     <strong>อันตราย</strong>
@@ -1219,27 +1183,173 @@ function showAIResult(imageURL, detectedObject, probability) {
 
             </div>
 
+            <button
+                class="scan-again-button"
+                onclick="showScanner()"
+            >
+                📷 สแกนใหม่
+            </button>
 
-            <div class="ai-actions">
-
-                <button
-                    class="scan-again-button"
-                    onclick="showScanner()"
-                >
-                    📷 สแกนขยะชิ้นใหม่
-                </button>
-
-                <button
-                    class="home-button"
-                    onclick="goHome()"
-                >
-                    🏠 กลับหน้าหลัก
-                </button>
-
-            </div>
+            <button
+                class="home-button"
+                onclick="goHome()"
+            >
+                🏠 กลับหน้าหลัก
+            </button>
 
         </div>
     `;
+}
+
+function answerAI(selectedBin) {
+
+    const result = window.aiResult;
+
+    if (!result) {
+        alert("ไม่พบข้อมูลการวิเคราะห์");
+        return;
+    }
+
+    const binNames = {
+        recycle: "🟢 ถังรีไซเคิล",
+        general: "🔵 ถังขยะทั่วไป",
+        organic: "🟤 ถังขยะอินทรีย์",
+        danger: "🔴 ถังขยะอันตราย"
+    };
+
+    const percent = Math.round(result.probability * 100);
+
+    const isCorrect = selectedBin === result.correctType;
+
+    if (isCorrect) {
+        score += 10;
+
+        if (missionProgress < 5) {
+            missionProgress++;
+            localStorage.setItem("missionProgress", missionProgress);
+        }
+
+        localStorage.setItem("trashScore", score);
+    }
+
+    document.querySelector(".app").innerHTML = `
+
+        <div class="ai-result-page">
+
+            <div style="
+                text-align:center;
+                font-size:65px;
+                margin-top:20px;
+            ">
+                ${isCorrect ? "🎉" : "😅"}
+            </div>
+
+            <h1 style="text-align:center;">
+                ${isCorrect ? "ตอบถูกต้อง!" : "ยังไม่ถูกนะ!"}
+            </h1>
+
+            <div class="ai-image-card">
+
+                <img
+                    src="${result.imageURL}"
+                    class="ai-result-image"
+                >
+
+            </div>
+
+            <div class="ai-detection-card">
+
+                <div class="section-title">
+                    🤖 AI ตรวจพบ
+                </div>
+
+                <div class="detected-object">
+                    ${result.detectedObject}
+                </div>
+
+                <div class="confidence">
+
+                    <div class="confidence-top">
+                        <span>ความมั่นใจของ AI</span>
+                        <strong>${percent}%</strong>
+                    </div>
+
+                    <div class="confidence-bar">
+
+                        <div
+                            class="confidence-fill"
+                            style="width:${percent}%"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="ai-bin-card">
+
+                <div class="section-title">
+                    🗑️ ผลการคัดแยก
+                </div>
+
+                <p>
+                    <strong>คำตอบของคุณ:</strong>
+                    ${binNames[selectedBin]}
+                </p>
+
+                <p>
+                    <strong>ถังที่ถูกต้อง:</strong>
+                    ${binNames[result.correctType]}
+                </p>
+
+                <p style="
+                    margin-top:15px;
+                    line-height:1.7;
+                ">
+                    ${getTrashExplanation(result.correctType)}
+                </p>
+
+            </div>
+
+            <h2 style="text-align:center;">
+                ${isCorrect ? "⭐ +10 คะแนน" : "ลองสังเกตประเภทขยะให้ดีขึ้นนะ"}
+            </h2>
+
+            <p style="text-align:center;">
+                คะแนนสะสม: ${score}
+            </p>
+
+            <button onclick="showScanner()">
+                📷 สแกนขยะชิ้นใหม่
+            </button>
+
+            <button onclick="goHome()">
+                🏠 กลับหน้าหลัก
+            </button>
+
+        </div>
+    `;
+}
+
+function getTrashExplanation(type) {
+
+    const explanations = {
+
+        recycle:
+            "ขยะรีไซเคิล เช่น ขวดพลาสติก กระป๋อง และกระดาษ สามารถนำไปผ่านกระบวนการเพื่อนำกลับมาใช้ประโยชน์ได้",
+
+        general:
+            "ขยะทั่วไปเป็นขยะที่ไม่สามารถนำกลับมาใช้ใหม่หรือย่อยสลายได้ง่าย เช่น ถุงพลาสติกบางประเภท",
+
+        organic:
+            "ขยะอินทรีย์ เช่น เศษอาหารและเปลือกผลไม้ สามารถย่อยสลายได้และนำไปทำปุ๋ยได้",
+
+        danger:
+            "ขยะอันตราย เช่น แบตเตอรี่และหลอดไฟ ควรแยกทิ้งโดยเฉพาะ เพราะอาจมีสารที่เป็นอันตราย"
+    };
+
+    return explanations[type];
 }
 
 if ("serviceWorker" in navigator) {
