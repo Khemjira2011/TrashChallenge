@@ -1094,3 +1094,385 @@ body {
     z-index: 9999;
     pointer-events: auto;
 }
+
+/* ==========================================
+   🎮 GAME CENTER
+========================================== */
+
+.game-center {
+    animation: fadeIn 0.3s ease;
+}
+
+.game-subtitle {
+    color: #718078;
+    font-size: 14px;
+    margin-top: -10px;
+    margin-bottom: 20px;
+}
+
+.game-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: white;
+    border-radius: 20px;
+    padding: 17px;
+    margin: 12px 0;
+    text-align: left;
+    box-shadow: 0 7px 18px rgba(0,0,0,0.07);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.game-card:active {
+    transform: scale(0.97);
+}
+
+.game-icon {
+    width: 58px;
+    height: 58px;
+    flex-shrink: 0;
+    border-radius: 18px;
+    background: #e7f7ec;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+}
+
+.game-card h3 {
+    margin: 0 0 5px;
+    font-size: 17px;
+}
+
+.game-card p {
+    margin: 0 0 6px;
+    color: #68766d;
+    font-size: 13px;
+}
+
+.game-card span {
+    color: #249653;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+/* ==========================================
+   🧠 TRUE OR FALSE GAME
+========================================== */
+
+.true-false-page {
+    animation: fadeIn 0.3s ease;
+}
+
+.game-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.game-top strong {
+    color: #249653;
+}
+
+.progress-track {
+    width: 100%;
+    height: 8px;
+    background: #e3eee6;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 22px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #45b96b;
+    border-radius: 20px;
+    transition: width 0.3s ease;
+}
+
+.question-card {
+    background: white;
+    border-radius: 24px;
+    padding: 30px 20px;
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.07);
+}
+
+.question-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 22px;
+    background: #e7f7ec;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 35px;
+    margin-bottom: 15px;
+}
+
+.question-label {
+    color: #718078;
+    font-size: 14px;
+    margin: 0 0 8px;
+}
+
+.question-card h2 {
+    font-size: 21px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.tf-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.tf-buttons button {
+    min-height: 65px;
+    border-radius: 18px;
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+}
+
+.true-btn {
+    background: #e5f7ea;
+    color: #238148;
+}
+
+.false-btn {
+    background: #fff0f0;
+    color: #d64545;
+}
+
+.game-score {
+    text-align: center;
+    color: #68766d;
+    font-weight: bold;
+    margin: 15px 0;
+}
+
+.game-finish {
+    text-align: center;
+}
+
+.finish-icon {
+    font-size: 70px;
+    margin: 30px 0 10px;
+}
+
+.final-score-card {
+    background: white;
+    border-radius: 22px;
+    padding: 25px;
+    margin: 20px 0;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.07);
+}
+
+.final-score-card small {
+    display: block;
+    color: #718078;
+    margin-bottom: 8px;
+}
+
+.final-score-card strong {
+    display: block;
+    font-size: 35px;
+    color: #249653;
+}
+
+/* ==========================================
+   📚 KNOWLEDGE CENTER
+========================================== */
+
+.knowledge-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.knowledge-big-icon {
+    font-size: 55px;
+    margin-bottom: 5px;
+}
+
+.knowledge-header h2 {
+    margin: 5px 0;
+    font-size: 28px;
+}
+
+.knowledge-header p {
+    color: #718078;
+    font-size: 14px;
+}
+
+.knowledge-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 11px;
+}
+
+.knowledge-card {
+    min-height: 125px;
+    margin: 0;
+    padding: 15px;
+    border: none;
+    border-radius: 20px;
+    background: white;
+    box-shadow: 0 7px 18px rgba(0,0,0,0.06);
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.knowledge-card:active {
+    transform: scale(0.96);
+}
+
+.knowledge-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    background: #e7f7ec;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+}
+
+.knowledge-card-text strong {
+    display: block;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.knowledge-card-text small {
+    display: block;
+    color: #8a958e;
+    font-size: 10px;
+    margin-top: 4px;
+}
+
+/* ---------- KNOWLEDGE DETAIL ---------- */
+
+.knowledge-detail {
+    text-align: center;
+}
+
+.back-button {
+    background: #eef7f1 !important;
+    color: #238148 !important;
+    box-shadow: none !important;
+    margin-bottom: 20px !important;
+}
+
+.detail-icon {
+    width: 85px;
+    height: 85px;
+    margin: 10px auto 15px;
+    border-radius: 27px;
+    background: #e7f7ec;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 45px;
+}
+
+.knowledge-detail h2 {
+    margin-bottom: 18px;
+}
+
+.knowledge-content {
+    background: white;
+    border-radius: 22px;
+    padding: 22px;
+    text-align: left;
+    line-height: 1.8;
+    box-shadow: 0 7px 18px rgba(0,0,0,0.06);
+}
+
+.knowledge-content p {
+    margin: 0;
+    font-size: 15px;
+}
+
+.knowledge-tip {
+    background: #fff8df;
+    border-radius: 18px;
+    padding: 16px;
+    margin: 15px 0;
+    text-align: left;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #665b35;
+}
+
+/* ==========================================
+   ⚡ SPEED SORT GAME
+========================================== */
+
+.speed-page {
+    animation: fadeIn 0.3s ease;
+}
+
+.speed-timer {
+    background: #fff4d6;
+    color: #a86b00;
+    border-radius: 18px;
+    padding: 12px;
+    margin: 15px 0;
+    font-weight: bold;
+    text-align: center;
+}
+
+.speed-item-card {
+    background: white;
+    border-radius: 24px;
+    padding: 30px 20px;
+    text-align: center;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.07);
+}
+
+.speed-item-card small {
+    color: #718078;
+}
+
+.speed-item {
+    font-size: 55px;
+    margin-top: 20px;
+}
+
+.speed-bins {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.speed-bins button {
+    min-height: 85px;
+    margin: 0;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.07);
+    font-size: 28px;
+}
+
+.speed-bins button strong {
+    display: block;
+    font-size: 14px;
+    margin-top: 5px;
+}

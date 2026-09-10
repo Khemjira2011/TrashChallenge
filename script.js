@@ -2117,3 +2117,555 @@ function getPlayerRank(score) {
         name: "มือใหม่รักษ์โลก"
     };
 }
+
+// ==========================================
+// 🎮 GAME CENTER
+// ==========================================
+
+function openGameCenter() {
+    document.querySelector(".app").innerHTML = `
+        <div class="page game-center">
+
+            <h2>🎮 Game Center</h2>
+            <p class="game-subtitle">
+                เลือกเกมที่ต้องการ แล้วมาท้าทายความรู้เรื่องขยะ!
+            </p>
+
+            <div class="game-card" onclick="startTrueFalseGame()">
+                <div class="game-icon">🧠</div>
+                <div>
+                    <h3>จริงหรือไม่?</h3>
+                    <p>ทดสอบความรู้เรื่องการคัดแยกขยะ</p>
+                    <span>เล่น 10 ข้อ • +10 คะแนน</span>
+                </div>
+            </div>
+
+            <div class="game-card" onclick="startSpeedGame()">
+                <div class="game-icon">⚡</div>
+                <div>
+                    <h3>ตอบให้ไว!</h3>
+                    <p>เลือกถังขยะให้ถูกก่อนหมดเวลา</p>
+                    <span>จับเวลา • ฝึกการตัดสินใจ</span>
+                </div>
+            </div>
+
+            <div class="game-card" onclick="startGame()">
+                <div class="game-icon">🗑️</div>
+                <div>
+                    <h3>คัดให้ถูกถัง</h3>
+                    <p>เกมคัดแยกขยะรูปแบบดั้งเดิม</p>
+                    <span>เกมหลักของ Trash Challenge</span>
+                </div>
+            </div>
+
+            <div class="game-card" onclick="showScanner()">
+                <div class="game-icon">📷</div>
+                <div>
+                    <h3>AI Scanner</h3>
+                    <p>ให้ AI ช่วยวิเคราะห์สิ่งของจากภาพ</p>
+                    <span>ทดลองใช้ AI</span>
+                </div>
+            </div>
+
+            <button onclick="location.reload()">
+                🏠 กลับหน้าหลัก
+            </button>
+
+        </div>
+    `;
+}
+
+// ==========================================
+// 🧠 TRUE OR FALSE GAME
+// ==========================================
+
+const trueFalseQuestions = [
+    {
+        question: "ขวดพลาสติกสามารถนำไปรีไซเคิลได้",
+        answer: true
+    },
+    {
+        question: "เศษอาหารควรทิ้งรวมกับถ่านไฟฉาย",
+        answer: false
+    },
+    {
+        question: "ถ่านไฟฉายเป็นขยะอันตราย",
+        answer: true
+    },
+    {
+        question: "เปลือกผลไม้จัดเป็นขยะอินทรีย์",
+        answer: true
+    },
+    {
+        question: "การแยกขยะช่วยให้สามารถนำวัสดุกลับมาใช้ประโยชน์ได้ง่ายขึ้น",
+        answer: true
+    },
+    {
+        question: "กระดาษทุกชนิดสามารถนำไปรีไซเคิลได้โดยไม่ต้องคัดแยก",
+        answer: false
+    },
+    {
+        question: "หลอดไฟที่ใช้แล้วควรทิ้งรวมกับเศษอาหาร",
+        answer: false
+    },
+    {
+        question: "การลดการใช้สิ่งของที่ไม่จำเป็นเป็นหลักการ Reduce",
+        answer: true
+    },
+    {
+        question: "ขยะอันตรายควรจัดการแยกจากขยะทั่วไป",
+        answer: true
+    },
+    {
+        question: "การทิ้งขยะถูกประเภทช่วยลดปัญหาขยะปะปนกัน",
+        answer: true
+    }
+];
+
+let trueFalseIndex = 0;
+let trueFalseScore = 0;
+
+function startTrueFalseGame() {
+
+    trueFalseIndex = 0;
+    trueFalseScore = 0;
+
+    showTrueFalseQuestion();
+}
+
+function showTrueFalseQuestion() {
+
+    const q = trueFalseQuestions[trueFalseIndex];
+
+    document.querySelector(".app").innerHTML = `
+        <div class="page true-false-page">
+
+            <div class="game-top">
+                <span>🧠 จริงหรือไม่?</span>
+                <strong>${trueFalseIndex + 1}/${trueFalseQuestions.length}</strong>
+            </div>
+
+            <div class="progress-track">
+                <div class="progress-fill"
+                     style="width:${((trueFalseIndex + 1) / trueFalseQuestions.length) * 100}%">
+                </div>
+            </div>
+
+            <div class="question-card">
+
+                <div class="question-icon">
+                    ❓
+                </div>
+
+                <p class="question-label">
+                    ข้อที่ ${trueFalseIndex + 1}
+                </p>
+
+                <h2>
+                    ${q.question}
+                </h2>
+
+            </div>
+
+            <div class="tf-buttons">
+
+                <button class="true-btn"
+                        onclick="answerTrueFalse(true)">
+                    ✅ จริง
+                </button>
+
+                <button class="false-btn"
+                        onclick="answerTrueFalse(false)">
+                    ❌ ไม่จริง
+                </button>
+
+            </div>
+
+            <p class="game-score">
+                ⭐ คะแนนรอบนี้: ${trueFalseScore}
+            </p>
+
+            <button onclick="openGameCenter()">
+                🎮 กลับ Game Center
+            </button>
+
+        </div>
+    `;
+}
+
+function answerTrueFalse(answer) {
+
+    const q = trueFalseQuestions[trueFalseIndex];
+
+    if (answer === q.answer) {
+        trueFalseScore += 10;
+        alert("🎉 ถูกต้อง! +10 คะแนน");
+    } else {
+        alert("❌ ยังไม่ถูก ลองจำข้อนี้ไว้นะ!");
+    }
+
+    trueFalseIndex++;
+
+    if (trueFalseIndex >= trueFalseQuestions.length) {
+        finishTrueFalseGame();
+    } else {
+        showTrueFalseQuestion();
+    }
+}
+
+function finishTrueFalseGame() {
+
+    let score = Number(localStorage.getItem("trashScore")) || 0;
+    score += trueFalseScore;
+
+    localStorage.setItem("trashScore", score);
+
+    document.querySelector(".app").innerHTML = `
+        <div class="page game-finish">
+
+            <div class="finish-icon">🏆</div>
+
+            <h2>จบเกมแล้ว!</h2>
+
+            <p>🧠 จริงหรือไม่?</p>
+
+            <div class="final-score-card">
+                <small>คะแนนที่ได้</small>
+                <strong>+${trueFalseScore} ⭐</strong>
+            </div>
+
+            <p>
+                ${trueFalseScore >= 80
+                    ? "🌟 ยอดเยี่ยม! ความรู้เรื่องขยะของคุณดีมาก"
+                    : trueFalseScore >= 50
+                    ? "🌱 เก่งมาก! ลองเล่นอีกครั้งเพื่อทำคะแนนให้สูงขึ้น"
+                    : "💡 ลองอ่านความรู้แล้วกลับมาเล่นอีกครั้งนะ"
+                }
+            </p>
+
+            <button class="start-btn"
+                    onclick="startTrueFalseGame()">
+                🔄 เล่นอีกครั้ง
+            </button>
+
+            <button onclick="openGameCenter()">
+                🎮 เลือกเกมอื่น
+            </button>
+
+            <button onclick="location.reload()">
+                🏠 กลับหน้าหลัก
+            </button>
+
+        </div>
+    `;
+}
+
+// ==========================================
+// 📚 KNOWLEDGE CENTER
+// ==========================================
+
+const knowledgeData = [
+    {
+        icon: "♻️",
+        title: "รู้จักประเภทขยะ",
+        text: "ขยะสามารถแบ่งเป็นหลายประเภท เช่น ขยะรีไซเคิล ขยะอินทรีย์ ขยะทั่วไป และขยะอันตราย การแยกประเภทช่วยให้จัดการขยะได้เหมาะสม"
+    },
+    {
+        icon: "🟢",
+        title: "ขยะรีไซเคิล",
+        text: "เช่น ขวดพลาสติก กระป๋องอะลูมิเนียม กระดาษ และกล่องกระดาษ ควรคัดแยกและเตรียมวัสดุให้เหมาะสมก่อนนำไปรีไซเคิล"
+    },
+    {
+        icon: "🟤",
+        title: "ขยะอินทรีย์",
+        text: "ได้แก่ เศษอาหาร เปลือกผลไม้ และใบไม้ ขยะประเภทนี้สามารถนำไปใช้ประโยชน์ เช่น ทำปุ๋ยหรือจัดการด้วยวิธีที่เหมาะสม"
+    },
+    {
+        icon: "🔵",
+        title: "ขยะทั่วไป",
+        text: "เป็นขยะที่ไม่เหมาะกับการรีไซเคิลหรือการนำไปใช้ประโยชน์ด้วยวิธีอื่น เช่น วัสดุบางชนิดที่ปนเปื้อนหรือไม่สามารถนำกลับมาใช้ได้"
+    },
+    {
+        icon: "🔴",
+        title: "ขยะอันตราย",
+        text: "เช่น ถ่านไฟฉาย แบตเตอรี่ และหลอดไฟ ควรแยกออกจากขยะทั่วไปและนำไปจัดการในจุดที่เหมาะสม"
+    },
+    {
+        icon: "🚮",
+        title: "ทำไมต้องแยกขยะ?",
+        text: "การแยกขยะช่วยลดการปะปนของขยะ ทำให้วัสดุที่สามารถนำกลับมาใช้ประโยชน์ได้ถูกนำไปจัดการอย่างเหมาะสม และช่วยลดปริมาณขยะที่ต้องกำจัด"
+    },
+    {
+        icon: "♻️",
+        title: "หลัก 3R",
+        text: "Reduce คือ ลดการใช้สิ่งของที่ไม่จำเป็น Reuse คือ นำสิ่งของกลับมาใช้ซ้ำ และ Recycle คือ นำวัสดุที่เหมาะสมเข้าสู่กระบวนการรีไซเคิล"
+    },
+    {
+        icon: "🏫",
+        title: "แยกขยะในโรงเรียน",
+        text: "เริ่มได้จากการทิ้งขยะให้ถูกประเภท ลดการใช้พลาสติกแบบใช้ครั้งเดียว และช่วยกันรักษาความสะอาด เพื่อให้โรงเรียนมีสภาพแวดล้อมที่ดีขึ้น"
+    }
+];
+
+function showKnowledge() {
+
+    document.querySelector(".app").innerHTML = `
+        <div class="page knowledge-page">
+
+            <div class="knowledge-header">
+                <div class="knowledge-big-icon">📚</div>
+                <h2>ห้องความรู้</h2>
+                <p>เรียนรู้ก่อนเล่น ฝึกแยกขยะให้ถูกต้อง 🌱</p>
+            </div>
+
+            <div class="knowledge-grid">
+
+                ${knowledgeData.map((item, index) => `
+                    <button class="knowledge-card"
+                            onclick="showKnowledgeDetail(${index})">
+
+                        <div class="knowledge-icon">
+                            ${item.icon}
+                        </div>
+
+                        <div class="knowledge-card-text">
+                            <strong>${item.title}</strong>
+                            <small>กดเพื่ออ่าน →</small>
+                        </div>
+
+                    </button>
+                `).join("")}
+
+            </div>
+
+            <button onclick="location.reload()">
+                🏠 กลับหน้าหลัก
+            </button>
+
+        </div>
+    `;
+}
+
+function showKnowledgeDetail(index) {
+
+    const item = knowledgeData[index];
+
+    document.querySelector(".app").innerHTML = `
+        <div class="page knowledge-detail">
+
+            <button class="back-button"
+                    onclick="showKnowledge()">
+                ← กลับห้องความรู้
+            </button>
+
+            <div class="detail-icon">
+                ${item.icon}
+            </div>
+
+            <h2>${item.title}</h2>
+
+            <div class="knowledge-content">
+                <p>${item.text}</p>
+            </div>
+
+            <div class="knowledge-tip">
+                💡 <strong>จำไว้!</strong>
+                <br>
+                ความรู้ที่ดีเริ่มต้นจากการรู้จักแยกขยะให้ถูกประเภท
+            </div>
+
+            <button class="start-btn"
+                    onclick="openGameCenter()">
+                🎮 ไปเล่นเกม
+            </button>
+
+        </div>
+    `;
+}
+
+// ==========================================
+// ⚡ SPEED SORT GAME
+// ==========================================
+
+const speedQuestions = [
+    { item: "🥤 ขวดพลาสติก", answer: "recycle" },
+    { item: "🍌 เปลือกกล้วย", answer: "organic" },
+    { item: "🔋 ถ่านไฟฉาย", answer: "danger" },
+    { item: "🥡 กล่องอาหารเปื้อน", answer: "general" },
+    { item: "🥫 กระป๋องอะลูมิเนียม", answer: "recycle" },
+    { item: "🍎 เศษผลไม้", answer: "organic" },
+    { item: "💡 หลอดไฟ", answer: "danger" },
+    { item: "🛍️ ถุงพลาสติกใช้แล้ว", answer: "general" },
+    { item: "📰 หนังสือพิมพ์", answer: "recycle" },
+    { item: "🍚 เศษข้าว", answer: "organic" }
+];
+
+let speedIndex = 0;
+let speedScore = 0;
+let speedTime = 10;
+let speedTimer;
+
+function startSpeedGame() {
+    speedIndex = 0;
+    speedScore = 0;
+    showSpeedQuestion();
+}
+
+function showSpeedQuestion() {
+
+    clearInterval(speedTimer);
+    speedTime = 10;
+
+    const q = speedQuestions[speedIndex];
+
+    document.querySelector(".app").innerHTML = `
+        <div class="page speed-page">
+
+            <div class="game-top">
+                <span>⚡ ตอบให้ไว!</span>
+                <strong>${speedIndex + 1}/${speedQuestions.length}</strong>
+            </div>
+
+            <div class="speed-timer">
+                ⏱️ <span id="speedTime">${speedTime}</span> วินาที
+            </div>
+
+            <div class="speed-item-card">
+                <small>ขยะชิ้นนี้ควรทิ้งที่ไหน?</small>
+                <div class="speed-item">${q.item}</div>
+            </div>
+
+            <div class="speed-bins">
+
+                <button onclick="answerSpeed('recycle')">
+                    🟢
+                    <strong>รีไซเคิล</strong>
+                </button>
+
+                <button onclick="answerSpeed('general')">
+                    🔵
+                    <strong>ทั่วไป</strong>
+                </button>
+
+                <button onclick="answerSpeed('organic')">
+                    🟤
+                    <strong>อินทรีย์</strong>
+                </button>
+
+                <button onclick="answerSpeed('danger')">
+                    🔴
+                    <strong>อันตราย</strong>
+                </button>
+
+            </div>
+
+            <p class="game-score">
+                ⭐ คะแนนรอบนี้: ${speedScore}
+            </p>
+
+        </div>
+    `;
+
+    speedTimer = setInterval(() => {
+
+        speedTime--;
+
+        const timer = document.getElementById("speedTime");
+
+        if (timer) {
+            timer.textContent = speedTime;
+        }
+
+        if (speedTime <= 0) {
+            clearInterval(speedTimer);
+
+            alert("⏰ หมดเวลา!");
+
+            speedIndex++;
+
+            if (speedIndex >= speedQuestions.length) {
+                finishSpeedGame();
+            } else {
+                showSpeedQuestion();
+            }
+        }
+
+    }, 1000);
+}
+
+function answerSpeed(answer) {
+
+    clearInterval(speedTimer);
+
+    const q = speedQuestions[speedIndex];
+
+    if (answer === q.answer) {
+
+        speedScore += 10;
+
+        alert(`🎉 ถูกต้อง! +10 คะแนน\n⏱️ เหลือ ${speedTime} วินาที`);
+
+    } else {
+
+        alert("❌ ยังไม่ถูก!");
+
+    }
+
+    speedIndex++;
+
+    if (speedIndex >= speedQuestions.length) {
+        finishSpeedGame();
+    } else {
+        showSpeedQuestion();
+    }
+}
+
+function finishSpeedGame() {
+
+    clearInterval(speedTimer);
+
+    let score = Number(localStorage.getItem("trashScore")) || 0;
+
+    score += speedScore;
+
+    localStorage.setItem("trashScore", score);
+
+    document.querySelector(".app").innerHTML = `
+        <div class="page game-finish">
+
+            <div class="finish-icon">⚡</div>
+
+            <h2>จบเกม!</h2>
+
+            <p>ตอบให้ไว! ⚡</p>
+
+            <div class="final-score-card">
+                <small>คะแนนที่ได้</small>
+                <strong>+${speedScore} ⭐</strong>
+            </div>
+
+            <p>
+                ${speedScore >= 80
+                    ? "🏆 เร็วและแม่นมาก!"
+                    : speedScore >= 50
+                    ? "🌱 ทำได้ดี! ลองอีกครั้งเพื่อทำคะแนนให้สูงขึ้น"
+                    : "💡 ลองทบทวนใบความรู้แล้วกลับมาเล่นอีกครั้งนะ"
+                }
+            </p>
+
+            <button class="start-btn"
+                    onclick="startSpeedGame()">
+                🔄 เล่นอีกครั้ง
+            </button>
+
+            <button onclick="openGameCenter()">
+                🎮 เลือกเกมอื่น
+            </button>
+
+            <button onclick="location.reload()">
+                🏠 กลับหน้าหลัก
+            </button>
+
+        </div>
+    `;
+}
