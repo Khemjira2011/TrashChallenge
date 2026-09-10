@@ -1081,3 +1081,16 @@ body {
         min-height: 95px;
     }
 }
+
+/* FIX PROFILE BUTTON */
+.top-bar .profile {
+    position: relative;
+    top: auto;
+    left: auto;
+    margin: 0;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+    z-index: 9999;
+    pointer-events: auto;
+}
