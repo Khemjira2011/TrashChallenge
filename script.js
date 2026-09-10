@@ -3,6 +3,20 @@ let questionIndex = 0;
 let missionProgress = Number(localStorage.getItem("missionProgress")) || 0;
 let missionClaimed = localStorage.getItem("missionClaimed") === "true";
 let gameMissionClaimed = localStorage.getItem("gameMissionClaimed") === "true";
+// 📊 สถิติการคัดแยกขยะ
+let trashStats = JSON.parse(localStorage.getItem("trashStats")) || {
+    total: 0,
+    correct: 0,
+    wrong: 0,
+    recycle: 0,
+    general: 0,
+    organic: 0,
+    danger: 0
+};
+
+// 📝 ประวัติการคัดแยก
+let trashHistory = JSON.parse(localStorage.getItem("trashHistory")) || [];
+let rewardHistory = JSON.parse(localStorage.getItem("rewardHistory")) || [];
 
 function updateHomeScore() {
     const homeScore = document.getElementById("homeScore");
@@ -124,6 +138,41 @@ function showQuestion() {
 function checkAnswer(answer) {
 
     const q = questions[questionIndex];
+
+    // 📊 บันทึกสถิติ
+    trashStats.total++;
+
+    if (answer === q.answer) {
+        trashStats.correct++;
+    } else {
+        trashStats.wrong++;
+    }
+
+    trashStats[answer]++;
+
+    localStorage.setItem(
+        "trashStats",
+        JSON.stringify(trashStats)
+    );
+
+    // 📝 บันทึกประวัติการเล่นเกม
+    trashHistory.unshift({
+        object: q.name,
+        confidence: 1,
+        selectedBin: answer,
+        correctBin: q.answer,
+        correct: answer === q.answer,
+        time: new Date().toLocaleString("th-TH")
+    });
+
+    if (trashHistory.length > 20) {
+        trashHistory = trashHistory.slice(0, 20);
+    }
+
+    localStorage.setItem(
+        "trashHistory",
+        JSON.stringify(trashHistory)
+    );
 
     if (answer === q.answer) {
         score += 10;
@@ -1066,135 +1115,197 @@ function showAnalysisResult(imageURL) {
 function showAIResult(imageURL, detectedObject, probability) {
 
     const object = detectedObject.toLowerCase();
+    const confidence = Math.round(probability * 100);
 
-    let correctType = null;
+    let correctType = "general";
+    let binName = "ถังขยะทั่วไป";
+    let binIcon = "🔵";
+    let binColor = "#2196f3";
 
-    // ♻️ รีไซเคิล
+    // ♻️ ขยะรีไซเคิล
     if (
         object.includes("bottle") ||
+        object.includes("plastic") ||
         object.includes("can") ||
         object.includes("carton") ||
         object.includes("paper") ||
         object.includes("newspaper") ||
-        object.includes("packet")
+        object.includes("box") ||
+        object.includes("packet") ||
+        object.includes("tin")
     ) {
         correctType = "recycle";
+        binName = "ถังขยะรีไซเคิล";
+        binIcon = "♻️";
+        binColor = "#43a047";
     }
 
-    // 🟤 อินทรีย์
+    // 🍌 ขยะอินทรีย์
     else if (
         object.includes("banana") ||
         object.includes("apple") ||
         object.includes("orange") ||
         object.includes("lemon") ||
-        object.includes("fruit")
+        object.includes("fruit") ||
+        object.includes("food")
     ) {
         correctType = "organic";
+        binName = "ถังขยะอินทรีย์";
+        binIcon = "🍃";
+        binColor = "#8d6e63";
     }
 
-    // 🔴 อันตราย
+    // 🔴 ขยะอันตราย
     else if (
         object.includes("battery") ||
-        object.includes("lightbulb")
+        object.includes("bulb") ||
+        object.includes("light") ||
+        object.includes("electronic")
     ) {
         correctType = "danger";
+        binName = "ถังขยะอันตราย";
+        binIcon = "⚠️";
+        binColor = "#e53935";
     }
 
-    // 🔵 ทั่วไป
-    else {
-        correctType = "general";
-    }
+    // ถ้าความมั่นใจต่ำ ให้ระบบเตือน
+    const lowConfidence = confidence < 35;
 
-    // เก็บข้อมูล AI ไว้รอเฉลย
     window.aiResult = {
         imageURL: imageURL,
         detectedObject: detectedObject,
         probability: probability,
-        correctType: correctType
+        confidence: confidence,
+        correctType: correctType,
+        binName: binName,
+        lowConfidence: lowConfidence
     };
 
     document.querySelector(".app").innerHTML = `
 
-        <div class="ai-result-page">
+        <h1>🧠 AI วิเคราะห์ภาพเสร็จแล้ว</h1>
 
-            <div class="ai-header">
-                <div class="ai-header-icon">🤖</div>
+        <img src="${imageURL}" style="
+            width:100%;
+            max-height:280px;
+            object-fit:contain;
+            border-radius:22px;
+            margin:15px 0;
+            box-shadow:0 5px 20px rgba(0,0,0,0.12);
+        ">
 
-                <div>
-                    <h1>AI วิเคราะห์ภาพแล้ว</h1>
-                    <p>ถึงเวลาทายแล้ว!</p>
-                </div>
-            </div>
+        <div style="
+            background:linear-gradient(135deg,#e8f5e9,#f1f8e9);
+            padding:20px;
+            border-radius:22px;
+            margin:15px 0;
+            border:2px solid #c8e6c9;
+        ">
 
-            <div class="ai-image-card">
+            <div style="font-size:45px;">🤖</div>
 
-                <img
-                    src="${imageURL}"
-                    class="ai-result-image"
-                >
+            <h2 style="margin:8px 0;">
+                พร้อมท้าทายแล้ว!
+            </h2>
 
-            </div>
-
-            <div class="choose-title">
-                🗑️ คุณคิดว่าขยะชิ้นนี้ควรทิ้งถังไหน?
-            </div>
-
-            <p class="choose-subtitle">
-                เลือกคำตอบก่อน แล้วดูว่า AI วิเคราะห์ถูกหรือไม่
+            <p style="margin:5px 0;">
+                AI วิเคราะห์ภาพเรียบร้อยแล้ว
             </p>
 
-            <div class="bin-grid">
+            <div style="
+                background:white;
+                padding:12px;
+                border-radius:15px;
+                margin-top:12px;
+            ">
+                <b>AI มองเห็นว่า:</b><br>
+                <span style="font-size:20px;">
+                    ${detectedObject}
+                </span>
 
-                <button
-                    class="bin-button recycle"
-                    onclick="answerAI('recycle')"
-                >
-                    <span>🟢</span>
-                    <strong>รีไซเคิล</strong>
-                    <small>Recycle</small>
-                </button>
+                <div style="
+                    margin-top:8px;
+                    height:10px;
+                    background:#ddd;
+                    border-radius:10px;
+                    overflow:hidden;
+                ">
+                    <div style="
+                        width:${confidence}%;
+                        height:100%;
+                        background:#4caf50;
+                    "></div>
+                </div>
 
-                <button
-                    class="bin-button general"
-                    onclick="answerAI('general')"
-                >
-                    <span>🔵</span>
-                    <strong>ทั่วไป</strong>
-                    <small>General</small>
-                </button>
-
-                <button
-                    class="bin-button organic"
-                    onclick="answerAI('organic')"
-                >
-                    <span>🟤</span>
-                    <strong>อินทรีย์</strong>
-                    <small>Organic</small>
-                </button>
-
-                <button
-                    class="bin-button danger"
-                    onclick="answerAI('danger')"
-                >
-                    <span>🔴</span>
-                    <strong>อันตราย</strong>
-                    <small>Danger</small>
-                </button>
-
+                <small>
+                    ความมั่นใจของ AI: <b>${confidence}%</b>
+                </small>
             </div>
 
-            <button
-                class="scan-again-button"
-                onclick="showScanner()"
-            >
-                📷 สแกนใหม่
+            ${
+                lowConfidence
+                    ? `
+                    <div style="
+                        margin-top:12px;
+                        background:#fff8e1;
+                        padding:12px;
+                        border-radius:15px;
+                        color:#795548;
+                    ">
+                        ⚠️ AI มีความมั่นใจค่อนข้างต่ำ<br>
+                        ระบบจะไม่ถือว่าผล AI ถูกต้อง 100%
+                        กรุณาใช้ความรู้ประกอบการตัดสินใจ
+                    </div>
+                    `
+                    : `
+                    <div style="
+                        margin-top:12px;
+                        background:#e8f5e9;
+                        padding:12px;
+                        border-radius:15px;
+                    ">
+                        ✅ AI มีความมั่นใจในระดับหนึ่ง
+                    </div>
+                    `
+            }
+
+        </div>
+
+        <div style="
+            background:#ffffff;
+            padding:20px;
+            border-radius:22px;
+            box-shadow:0 4px 15px rgba(0,0,0,0.08);
+        ">
+
+            <h2>🗑️ ถึงตาคุณแล้ว!</h2>
+
+            <p>
+                คุณคิดว่าขยะชิ้นนี้ควรทิ้งถังไหน?
+            </p>
+
+            <p style="color:#777;font-size:14px;">
+                เลือกคำตอบก่อนดูผลเฉลยจากระบบ
+            </p>
+
+            <button onclick="answerAI('recycle')"
+                style="background:#43a047;">
+                ♻️ รีไซเคิล
             </button>
 
-            <button
-                class="home-button"
-                onclick="goHome()"
-            >
-                🏠 กลับหน้าหลัก
+            <button onclick="answerAI('general')"
+                style="background:#2196f3;">
+                🔵 ทั่วไป
+            </button>
+
+            <button onclick="answerAI('organic')"
+                style="background:#8d6e63;">
+                🍃 อินทรีย์
+            </button>
+
+            <button onclick="answerAI('danger')"
+                style="background:#e53935;">
+                ⚠️ อันตราย
             </button>
 
         </div>
@@ -1206,130 +1317,195 @@ function answerAI(selectedBin) {
     const result = window.aiResult;
 
     if (!result) {
-        alert("ไม่พบข้อมูลการวิเคราะห์");
+        alert("ไม่พบผลการวิเคราะห์ กรุณาลองใหม่");
+        showScanner();
         return;
     }
 
-    const binNames = {
-        recycle: "🟢 ถังรีไซเคิล",
-        general: "🔵 ถังขยะทั่วไป",
-        organic: "🟤 ถังขยะอินทรีย์",
-        danger: "🔴 ถังขยะอันตราย"
-    };
+    const correct = selectedBin === result.correctType;
 
-    const percent = Math.round(result.probability * 100);
+     // 📊 บันทึกสถิติ
+     trashStats.total++;
 
-    const isCorrect = selectedBin === result.correctType;
-
-    if (isCorrect) {
-        score += 10;
-
-        if (missionProgress < 5) {
-            missionProgress++;
-            localStorage.setItem("missionProgress", missionProgress);
-        }
-
-        localStorage.setItem("trashScore", score);
+    if (correct) {
+        trashStats.correct++;
+    } else {
+        trashStats.wrong++;
     }
+
+trashStats[selectedBin]++;
+
+localStorage.setItem("trashStats", JSON.stringify(trashStats));
+
+if (correct) {
+    score += 10;
+
+    if (missionProgress < 5) {
+        missionProgress++;
+    }
+
+    localStorage.setItem("trashScore", score);
+    localStorage.setItem("missionProgress", missionProgress);
+}
+
+    const selectedName = getBinName(selectedBin);
+
+// 📝 บันทึกประวัติการคัดแยก
+trashHistory.unshift({
+    object: result.detectedObject,
+    confidence: result.confidence,
+    selectedBin: selectedBin,
+    correctBin: result.correctType,
+    correct: correct,
+    time: new Date().toLocaleString("th-TH")
+});
+
+if (trashHistory.length > 20) {
+    trashHistory = trashHistory.slice(0, 20);
+}
+
+localStorage.setItem("trashHistory", JSON.stringify(trashHistory));
+
+    const resultColor = correct ? "#e8f5e9" : "#ffebee";
+    const resultIcon = correct ? "🎉" : "💡";
+    const resultTitle = correct
+        ? "ตอบถูกต้อง!"
+        : "ยังไม่ถูกนะ!";
 
     document.querySelector(".app").innerHTML = `
 
-        <div class="ai-result-page">
+        <h1>${resultIcon} ${resultTitle}</h1>
 
-            <div style="
-                text-align:center;
-                font-size:65px;
-                margin-top:20px;
-            ">
-                ${isCorrect ? "🎉" : "😅"}
-            </div>
+        <img src="${result.imageURL}" style="
+            width:100%;
+            max-height:250px;
+            object-fit:contain;
+            border-radius:22px;
+            margin:15px 0;
+        ">
 
-            <h1 style="text-align:center;">
-                ${isCorrect ? "ตอบถูกต้อง!" : "ยังไม่ถูกนะ!"}
-            </h1>
+        <div style="
+            background:${resultColor};
+            padding:20px;
+            border-radius:22px;
+            margin:15px 0;
+        ">
 
-            <div class="ai-image-card">
-
-                <img
-                    src="${result.imageURL}"
-                    class="ai-result-image"
-                >
-
-            </div>
-
-            <div class="ai-detection-card">
-
-                <div class="section-title">
-                    🤖 AI ตรวจพบ
-                </div>
-
-                <div class="detected-object">
-                    ${result.detectedObject}
-                </div>
-
-                <div class="confidence">
-
-                    <div class="confidence-top">
-                        <span>ความมั่นใจของ AI</span>
-                        <strong>${percent}%</strong>
-                    </div>
-
-                    <div class="confidence-bar">
-
-                        <div
-                            class="confidence-fill"
-                            style="width:${percent}%"
-                        ></div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="ai-bin-card">
-
-                <div class="section-title">
-                    🗑️ ผลการคัดแยก
-                </div>
-
-                <p>
-                    <strong>คำตอบของคุณ:</strong>
-                    ${binNames[selectedBin]}
-                </p>
-
-                <p>
-                    <strong>ถังที่ถูกต้อง:</strong>
-                    ${binNames[result.correctType]}
-                </p>
-
-                <p style="
-                    margin-top:15px;
-                    line-height:1.7;
-                ">
-                    ${getTrashExplanation(result.correctType)}
-                </p>
-
-            </div>
-
-            <h2 style="text-align:center;">
-                ${isCorrect ? "⭐ +10 คะแนน" : "ลองสังเกตประเภทขยะให้ดีขึ้นนะ"}
+            <h2>
+                ${correct ? "✅ เยี่ยมมาก!" : "📚 มาเรียนรู้กัน!"}
             </h2>
 
-            <p style="text-align:center;">
-                คะแนนสะสม: ${score}
+            <p>
+                คุณเลือก:
+                <b>${selectedName}</b>
             </p>
 
-            <button onclick="showScanner()">
-                📷 สแกนขยะชิ้นใหม่
-            </button>
+            <p>
+                AI แนะนำ:
+                <b>${result.binName}</b>
+            </p>
 
-            <button onclick="goHome()">
-                🏠 กลับหน้าหลัก
-            </button>
+            <hr>
+
+            <p>
+                🤖 <b>AI ตรวจพบ:</b><br>
+                ${result.detectedObject}
+            </p>
+
+            <p>
+                📊 <b>ความมั่นใจ:</b>
+                ${result.confidence}%
+            </p>
 
         </div>
+
+        <div style="
+            background:white;
+            padding:20px;
+            border-radius:22px;
+            box-shadow:0 4px 15px rgba(0,0,0,0.08);
+            text-align:left;
+        ">
+
+            <h2>💡 ทำไมต้องทิ้งถังนี้?</h2>
+
+            <p>
+                ${getTrashExplanation(result.correctType)}
+            </p>
+
+            <div style="
+                background:#e3f2fd;
+                padding:15px;
+                border-radius:15px;
+                margin-top:15px;
+            ">
+
+                <b>🌱 เกร็ดความรู้</b>
+
+                <p style="margin-bottom:0;">
+                    การแยกขยะตั้งแต่ต้นทางช่วยลดการปนเปื้อน
+                    และทำให้ขยะบางประเภทสามารถนำกลับมาใช้ประโยชน์ได้ง่ายขึ้น
+                </p>
+
+            </div>
+
+        </div>
+
+        <div style="
+            background:#fff8e1;
+            padding:18px;
+            border-radius:20px;
+            margin-top:15px;
+        ">
+
+            <h3>🏆 คะแนนของคุณ</h3>
+
+            <div style="font-size:35px;font-weight:bold;">
+                ${score} คะแนน
+            </div>
+
+            ${
+                correct
+                    ? `<p>+10 คะแนน 🎉</p>`
+                    : `<p>ครั้งนี้ไม่ได้คะแนน แต่ได้ความรู้เพิ่ม! 💪</p>`
+            }
+
+        </div>
+
+        <button onclick="showScanner()">
+            📷 สแกนขยะชิ้นต่อไป
+        </button>
+
+        <button onclick="goHome()">
+            🏠 กลับหน้าหลัก
+        </button>
     `;
+}
+
+function getBinName(type) {
+
+    if (type === "recycle") return "♻️ ถังขยะรีไซเคิล";
+    if (type === "organic") return "🍃 ถังขยะอินทรีย์";
+    if (type === "danger") return "⚠️ ถังขยะอันตราย";
+
+    return "🔵 ถังขยะทั่วไป";
+}
+
+function getTrashExplanation(type) {
+
+    if (type === "recycle") {
+        return "ขยะประเภทนี้สามารถนำเข้าสู่กระบวนการคัดแยกและรีไซเคิลเพื่อนำวัสดุกลับมาใช้ประโยชน์ได้ โดยควรเทสิ่งสกปรกหรือเศษอาหารออกก่อนทิ้ง";
+    }
+
+    if (type === "organic") {
+        return "ขยะอินทรีย์หรือเศษอาหารสามารถย่อยสลายได้ตามธรรมชาติ และบางส่วนสามารถนำไปทำปุ๋ยหรือใช้ประโยชน์ต่อได้";
+    }
+
+    if (type === "danger") {
+        return "ขยะอันตรายควรแยกออกจากขยะทั่วไป เพราะอาจมีสารหรือส่วนประกอบที่เป็นอันตรายต่อคนและสิ่งแวดล้อม";
+    }
+
+    return "ขยะทั่วไปคือขยะที่ไม่เหมาะกับการรีไซเคิล ไม่ใช่ขยะอินทรีย์ และไม่ใช่ขยะอันตราย จึงควรแยกออกจากขยะประเภทอื่นก่อนทิ้ง";
 }
 
 function getTrashExplanation(type) {
@@ -1362,4 +1538,582 @@ if ("serviceWorker" in navigator) {
                 console.log("Service Worker error:", error);
             });
     });
+}
+
+// 📊 แสดงสถิติการคัดแยกขยะ
+function showStats() {
+
+    const accuracy = trashStats.total > 0
+        ? Math.round((trashStats.correct / trashStats.total) * 100)
+        : 0;
+
+    const bins = {
+        recycle: trashStats.recycle,
+        general: trashStats.general,
+        organic: trashStats.organic,
+        danger: trashStats.danger
+    };
+
+    let bestBin = "general";
+
+    if (trashStats.total > 0) {
+        bestBin = Object.keys(bins).reduce((a, b) =>
+            bins[a] >= bins[b] ? a : b
+        );
+    }
+
+    const bestBinName = getBinName(bestBin);
+
+    let feedback = "ลองสแกนขยะเพิ่มอีกนิดเพื่อให้ระบบวิเคราะห์ข้อมูลของคุณ 😊";
+
+    if (trashStats.total > 0) {
+
+        const weakestBin = Object.keys(bins).reduce((a, b) =>
+            bins[a] <= bins[b] ? a : b
+        );
+
+        const weakestBinName = getBinName(weakestBin);
+
+        if (accuracy >= 80) {
+            feedback = "🌟 ยอดเยี่ยม! คุณคัดแยกขยะได้แม่นยำมาก";
+        }
+        else if (accuracy >= 60) {
+            feedback = "💪 ทำได้ดี! ลองฝึกเพิ่มเติมเกี่ยวกับ " + weakestBinName;
+        }
+        else {
+            feedback = "🌱 ระบบแนะนำให้ฝึกเกี่ยวกับ " + weakestBinName + " เป็นพิเศษ";
+        }
+    }
+
+    document.querySelector(".app").innerHTML = `
+        <h1>📊 สถิติของคุณ</h1>
+
+        <div style="
+            background:white;
+            padding:20px;
+            border-radius:20px;
+            margin:20px 0;
+            box-shadow:0 4px 12px rgba(0,0,0,0.1);
+        ">
+
+            <h2>📈 ผลการใช้งาน</h2>
+
+            <p>🗑️ สแกนทั้งหมด: <b>${trashStats.total}</b> ครั้ง</p>
+            <p>✅ ตอบถูก: <b>${trashStats.correct}</b> ครั้ง</p>
+            <p>❌ ตอบผิด: <b>${trashStats.wrong}</b> ครั้ง</p>
+
+            <hr>
+
+            <h2>🎯 ความแม่นยำ</h2>
+
+            <div style="
+                font-size:48px;
+                font-weight:bold;
+                margin:15px;
+            ">
+                ${accuracy}%
+            </div>
+
+            <p>${feedback}</p>
+
+            <hr>
+
+            <h2>🗑️ ประเภทขยะที่เลือก</h2>
+
+            <p>♻️ รีไซเคิล: ${trashStats.recycle} ครั้ง</p>
+            <p>🔵 ทั่วไป: ${trashStats.general} ครั้ง</p>
+            <p>🍃 อินทรีย์: ${trashStats.organic} ครั้ง</p>
+            <p>⚠️ อันตราย: ${trashStats.danger} ครั้ง</p>
+
+            <hr>
+
+            <h3>📊 การเลือกถังขยะ</h3>
+
+            <div style="margin:15px 0;">
+                <div>♻️ รีไซเคิล</div>
+                <div style="
+                    background:#e0e0e0;
+                    border-radius:10px;
+                    height:20px;
+                    overflow:hidden;
+                ">
+                    <div style="
+                        width:${Math.min(trashStats.recycle * 10, 100)}%;
+                        height:20px;
+                        background:#43a047;
+                    "></div>
+                </div>
+            </div>
+
+            <div style="margin:15px 0;">
+                <div>🔵 ทั่วไป</div>
+                <div style="
+                    background:#e0e0e0;
+                    border-radius:10px;
+                    height:20px;
+                    overflow:hidden;
+                ">
+                    <div style="
+                        width:${Math.min(trashStats.general * 10, 100)}%;
+                        height:20px;
+                        background:#2196f3;
+                    "></div>
+                </div>
+            </div>
+
+            <div style="margin:15px 0;">
+                <div>🍃 อินทรีย์</div>
+                <div style="
+                    background:#e0e0e0;
+                    border-radius:10px;
+                    height:20px;
+                    overflow:hidden;
+                ">
+                    <div style="
+                        width:${Math.min(trashStats.organic * 10, 100)}%;
+                        height:20px;
+                        background:#8d6e63;
+                    "></div>
+                </div>
+            </div>
+
+            <div style="margin:15px 0;">
+                <div>⚠️ อันตราย</div>
+                <div style="
+                    background:#e0e0e0;
+                    border-radius:10px;
+                    height:20px;
+                    overflow:hidden;
+                ">
+                    <div style="
+                        width:${Math.min(trashStats.danger * 10, 100)}%;
+                        height:20px;
+                        background:#e53935;
+                    "></div>
+                </div>
+            </div>
+
+            <hr>
+
+            <h3>🏆 ประเภทที่เลือกบ่อยที่สุด</h3>
+
+            <p>
+                ${bestBinName}
+            </p>
+
+        </div>
+
+        <button onclick="showScanner()">
+            📷 สแกนขยะอีกครั้ง
+        </button>
+
+        <button onclick="showHome()">
+            🏠 กลับหน้าหลัก
+        </button>
+    `;
+}
+
+// 📝 แสดงประวัติการคัดแยก
+function showHistory() {
+
+    let historyHTML = "";
+
+    if (trashHistory.length === 0) {
+        historyHTML = `
+            <div style="
+                background:white;
+                padding:30px;
+                border-radius:20px;
+                margin:20px 0;
+                text-align:center;
+            ">
+                <div style="font-size:50px;">🗑️</div>
+                <h2>ยังไม่มีประวัติ</h2>
+                <p>ลองสแกนขยะเพื่อเริ่มสร้างประวัติของคุณ</p>
+            </div>
+        `;
+    } else {
+
+        historyHTML = trashHistory.map((item, index) => {
+
+            const resultIcon = item.correct ? "✅" : "❌";
+            const resultText = item.correct ? "ตอบถูก" : "ตอบผิด";
+
+            return `
+                <div style="
+                    background:white;
+                    padding:16px;
+                    border-radius:16px;
+                    margin:12px 0;
+                    box-shadow:0 3px 10px rgba(0,0,0,0.08);
+                    text-align:left;
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                    ">
+                        <b>ครั้งที่ ${trashHistory.length - index}</b>
+                        <span>${resultIcon} ${resultText}</span>
+                    </div>
+
+                    <hr>
+
+                    <p>
+                        🤖 AI ตรวจพบ:
+                        <b>${item.object}</b>
+                    </p>
+
+                    <p>
+                        🎯 ความมั่นใจ:
+                        <b>${Math.round(item.confidence * 100)}%</b>
+                    </p>
+
+                    <p>
+                        🗑️ คุณเลือก:
+                        <b>${getBinName(item.selectedBin)}</b>
+                    </p>
+
+                    <p>
+                        💡 ถังที่ระบบแนะนำ:
+                        <b>${getBinName(item.correctBin)}</b>
+                    </p>
+
+                    <small>🕐 ${item.time}</small>
+
+                </div>
+            `;
+        }).join("");
+    }
+
+    document.querySelector(".app").innerHTML = `
+        <h1>📝 ประวัติการคัดแยก</h1>
+
+        <p>
+            แสดงประวัติการสแกนล่าสุด
+            ${trashHistory.length} รายการ
+        </p>
+
+        ${historyHTML}
+
+        <button onclick="showScanner()">
+            📷 สแกนขยะ
+        </button>
+
+        <button onclick="showStats()">
+            📊 ดูสถิติ
+        </button>
+
+        <button onclick="showHome()">
+            🏠 กลับหน้าหลัก
+        </button>
+    `;
+}
+
+// 🏆 ระบบตรวจสอบเหรียญ / Badge
+function getBadges() {
+
+    const accuracy = trashStats.total > 0
+        ? Math.round((trashStats.correct / trashStats.total) * 100)
+        : 0;
+
+    return [
+        {
+            icon: "🗑️",
+            name: "นักสแกนมือใหม่",
+            description: "สแกนขยะครบ 5 ครั้ง",
+            unlocked: trashStats.total >= 5
+        },
+        {
+            icon: "🎯",
+            name: "นักคัดแยกมือโปร",
+            description: "ตอบถูกครบ 5 ครั้ง",
+            unlocked: trashStats.correct >= 5
+        },
+        {
+            icon: "🌟",
+            name: "ผู้เชี่ยวชาญการคัดแยก",
+            description: "มีความแม่นยำตั้งแต่ 80% ขึ้นไป",
+            unlocked: accuracy >= 80 && trashStats.total >= 5
+        }
+    ];
+}
+
+// 🏆 แสดงเหรียญ / Badge
+function showBadges() {
+
+    const badges = getBadges();
+
+    const badgeHTML = badges.map(badge => {
+
+        const status = badge.unlocked
+            ? "🏆 ปลดล็อกแล้ว"
+            : "🔒 ยังไม่ปลดล็อก";
+
+        const opacity = badge.unlocked ? "1" : "0.45";
+
+        return `
+            <div style="
+                background:white;
+                padding:20px;
+                border-radius:20px;
+                margin:15px 0;
+                text-align:center;
+                opacity:${opacity};
+                box-shadow:0 4px 12px rgba(0,0,0,0.1);
+            ">
+
+                <div style="font-size:60px;">
+                    ${badge.icon}
+                </div>
+
+                <h2>${badge.name}</h2>
+
+                <p>${badge.description}</p>
+
+                <strong>${status}</strong>
+
+            </div>
+        `;
+
+    }).join("");
+
+    document.querySelector(".app").innerHTML = `
+        <h1>🏆 เหรียญของฉัน</h1>
+
+        <p>
+            ปลดล็อก Badge เพื่อแสดงความสำเร็จในการคัดแยกขยะ
+        </p>
+
+        ${badgeHTML}
+
+        <button onclick="showScanner()">
+            📷 สแกนขยะ
+        </button>
+
+        <button onclick="showStats()">
+            📊 ดูสถิติ
+        </button>
+
+        <button onclick="showHome()">
+            🏠 กลับหน้าหลัก
+        </button>
+    `;
+}
+
+// 🏠 กลับหน้าหลัก
+function showHome() {
+    location.reload();
+}
+
+function showRewards() {
+    const score = Number(localStorage.getItem("trashScore")) || 0;
+
+    document.querySelector(".app").innerHTML = `
+        <div class="page">
+            <h2>🎁 แลกของรางวัล</h2>
+
+            <p class="reward-score">
+                ⭐ คะแนนของฉัน: <strong>${score}</strong>
+            </p>
+
+            <div class="reward-list">
+
+                <div class="reward-card">
+                    <div class="reward-icon">🌱</div>
+                    <h3>เมล็ดพันธุ์</h3>
+                    <p>ใช้ 100 คะแนน</p>
+                    <button onclick="redeemReward(100, '🌱 เมล็ดพันธุ์')">
+                        แลกของรางวัล
+                    </button>
+                </div>
+
+                <div class="reward-card">
+                    <div class="reward-icon">🛍️</div>
+                    <h3>ถุงผ้า</h3>
+                    <p>ใช้ 200 คะแนน</p>
+                    <button onclick="redeemReward(200, '🛍️ ถุงผ้า')">
+                        แลกของรางวัล
+                    </button>
+                </div>
+
+                <div class="reward-card">
+                    <div class="reward-icon">♻️</div>
+                    <h3>สมุดรีไซเคิล</h3>
+                    <p>ใช้ 300 คะแนน</p>
+                    <button onclick="redeemReward(300, '♻️ สมุดรีไซเคิล')">
+                        แลกของรางวัล
+                    </button>
+                </div>
+
+                <div class="reward-card">
+                    <div class="reward-icon">🏆</div>
+                    <h3>รางวัลพิเศษ</h3>
+                    <p>ใช้ 500 คะแนน</p>
+                    <button onclick="redeemReward(500, '🏆 รางวัลพิเศษ')">
+                        แลกของรางวัล
+                    </button>
+                </div>
+
+            </div>
+
+                <div class="reward-section">
+
+                    <h3>🎁 รางวัลที่เคยแลก</h3>
+
+    ${
+                rewardHistory.length === 0
+                ? "<p>ยังไม่มีรางวัลที่แลก</p>"
+                 : rewardHistory.slice(0, 5).map(reward => `
+            <div class="reward-history-item">
+                <strong>${reward.name}</strong>
+                <span>⭐ ${reward.cost} คะแนน</span>
+                <small>${reward.time}</small>
+            </div>
+        `).join("")
+    }
+
+</div>
+            <button onclick="goHome()">
+                🏠 กลับหน้าหลัก
+            </button>
+        </div>
+    `;
+}
+
+function redeemReward(cost, rewardName) {
+    let score = Number(localStorage.getItem("trashScore")) || 0;
+
+    if (score < cost) {
+        alert("❌ คะแนนยังไม่พอสำหรับรางวัลนี้");
+        return;
+    }
+
+    score -= cost;
+
+    localStorage.setItem("trashScore", score);
+
+    rewardHistory.unshift({
+        name: rewardName,
+        cost: cost,
+        time: new Date().toLocaleString("th-TH")
+    });
+
+    localStorage.setItem(
+        "rewardHistory",
+        JSON.stringify(rewardHistory)
+    );
+
+    alert(`🎉 แลก ${rewardName} สำเร็จ!`);
+
+    showRewards();
+}
+
+function showProfile() {
+    const score = Number(localStorage.getItem("trashScore")) || 0;
+    const playerRank = getPlayerRank(score);
+
+    const total = trashStats.total || 0;
+    const correct = trashStats.correct || 0;
+
+    const accuracy = total > 0
+        ? Math.round((correct / total) * 100)
+        : 0;
+
+    const badges = getBadges();
+    const unlockedBadges = badges.filter(badge => badge.unlocked).length;
+
+    document.querySelector(".app").innerHTML = `
+        <div class="page">
+
+            <h2>👤 โปรไฟล์ของฉัน</h2>
+
+            <div class="profile-card">
+
+                <div class="big-profile">
+                    👤
+                </div>
+
+                <h3>นักคัดแยกขยะ</h3>
+
+                <p>
+        ${playerRank.icon} <strong>${playerRank.name}</strong>
+                </p>
+
+            <p>♻️ Trash Challenge Player</p>
+
+            </div>
+
+            <div class="profile-stats">
+
+                <div class="profile-stat">
+                    <strong>⭐ ${score}</strong>
+                    <span>คะแนน</span>
+                </div>
+
+                <div class="profile-stat">
+                    <strong>📷 ${total}</strong>
+                    <span>สแกนทั้งหมด</span>
+                </div>
+
+                <div class="profile-stat">
+                    <strong>🎯 ${correct}</strong>
+                    <span>ตอบถูก</span>
+                </div>
+
+                <div class="profile-stat">
+                    <strong>📈 ${accuracy}%</strong>
+                    <span>ความแม่นยำ</span>
+                </div>
+
+            </div>
+
+            <div class="profile-section">
+                <h3>🏆 เหรียญที่ได้รับ</h3>
+                <p>${unlockedBadges} / ${badges.length} เหรียญ</p>
+            </div>
+
+            <button onclick="showBadges()">
+                🏆 ดูเหรียญทั้งหมด
+            </button>
+
+            <button onclick="showRewards()">
+                🎁 แลกของรางวัล
+            </button>
+
+            <button onclick="goHome()">
+                🏠 กลับหน้าหลัก
+            </button>
+
+        </div>
+    `;
+}
+
+function getPlayerRank(score) {
+    if (score >= 500) {
+        return {
+            icon: "👑",
+            name: "ตำนานนักคัดแยก"
+        };
+    }
+
+    if (score >= 300) {
+        return {
+            icon: "♻️",
+            name: "ฮีโร่รักษ์โลก"
+        };
+    }
+
+    if (score >= 100) {
+        return {
+            icon: "🌱",
+            name: "นักคัดแยก"
+        };
+    }
+
+    return {
+        icon: "⭐",
+        name: "มือใหม่รักษ์โลก"
+    };
 }

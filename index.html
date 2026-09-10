@@ -10,59 +10,151 @@
 </head>
 
 <body>
+<div class="app">
 
-    <div class="app">
+    <!-- TOP BAR -->
+    <div class="top-bar">
 
-        <div class="profile">👤</div>
+        <button class="profile" onclick="showProfile()" aria-label="โปรไฟล์">
+            👤
+        </button>
 
-        <div class="score">⭐ <span id="homeScore">0</span></div>
+        <div class="score">
+            ⭐ <span id="homeScore">0</span>
+        </div>
+
+    </div>
+
+    <!-- LOGO -->
+    <div class="hero">
+
+        <div class="logo-icon">
+            ♻️
+        </div>
 
         <h1>
-            ♻️ Trash<br>
+            Trash<br>
             <span>Challenge!</span>
         </h1>
 
         <p class="subtitle">
-            คัดก่อนทิ้ง แยกให้ถูกที่
+            คัดก่อนทิ้ง แยกให้ถูกที่ 🌱
         </p>
 
+    </div>
+
+
+    <!-- MAIN ACTIONS -->
+    <div class="main-actions">
+
         <button class="start-btn" onclick="startGame()">
-            ▶ เริ่มเกม
+            <span>▶</span>
+            เริ่มเกม
         </button>
 
-        <button class="knowledge-btn" onclick="showScanner()">
-            📷 สแกนขยะ
+        <button class="scan-btn" onclick="showScanner()">
+            <span>📷</span>
+            สแกนขยะ
         </button>
 
-        <button class="knowledge-btn" onclick="showKnowledge()">
-            📖 โหมดความรู้
-        </button>
+    </div>
 
-        <div class="bottom-menu">
 
-            <div onclick="location.reload()" style="cursor:pointer;">
-                🏠<br>
-                <small>หน้าหลัก</small>
+    <!-- DAILY MISSION -->
+    <div class="daily-card">
+
+        <div class="daily-header">
+            <div>
+                <small>🎯 ภารกิจประจำวัน</small>
+                <h3>นักคัดแยกตัวจริง</h3>
             </div>
-        
-            <div onclick="showScore()" style="cursor:pointer;">
-                ⭐<br>
-                <small>คะแนน</small>
+
+            <div class="mission-icon">
+                🌱
             </div>
-        
-            <div onclick="showMission()" style="cursor:pointer;">
-                🎯<br>
-                <small>ภารกิจ</small>
-            </div>
-        
-            <div onclick="showSettings()" style="cursor:pointer;">
-                ⚙️<br>
-                <small>ตั้งค่า</small>
-            </div>
-        
+        </div>
+
+        <p>
+            คัดแยกขยะให้ถูกต้องและสะสมคะแนน
+        </p>
+
+        <div class="mission-line">
+            <span>♻️ พร้อมลุย!</span>
+            <strong>+100 ⭐</strong>
         </div>
 
     </div>
+
+
+    <!-- FEATURE GRID -->
+    <div class="feature-grid">
+
+        <button onclick="showStats()">
+            <span class="feature-icon">📊</span>
+            <strong>สถิติ</strong>
+            <small>ดูผลการคัดแยก</small>
+        </button>
+
+        <button onclick="showHistory()">
+            <span class="feature-icon">📝</span>
+            <strong>ประวัติ</strong>
+            <small>ดูรายการที่ผ่านมา</small>
+        </button>
+
+        <button onclick="showBadges()">
+            <span class="feature-icon">🏆</span>
+            <strong>เหรียญ</strong>
+            <small>ความสำเร็จของฉัน</small>
+        </button>
+
+        <button onclick="showRewards()">
+            <span class="feature-icon">🎁</span>
+            <strong>ของรางวัล</strong>
+            <small>ใช้คะแนนแลก</small>
+        </button>
+
+    </div>
+
+
+    <!-- KNOWLEDGE -->
+    <button class="knowledge-btn" onclick="showKnowledge()">
+        <span>📖</span>
+
+        <div>
+            <strong>โหมดความรู้</strong>
+            <small>เรียนรู้เรื่องการคัดแยกขยะ</small>
+        </div>
+
+        <span class="arrow">›</span>
+    </button>
+
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-menu">
+
+        <div onclick="location.reload()" style="cursor:pointer;">
+            🏠
+            <small>หน้าหลัก</small>
+        </div>
+
+        <div onclick="showScore()" style="cursor:pointer;">
+            ⭐
+            <small>คะแนน</small>
+        </div>
+
+        <div onclick="showMission()" style="cursor:pointer;">
+            🎯
+            <small>ภารกิจ</small>
+        </div>
+
+        <div onclick="showSettings()" style="cursor:pointer;">
+            ⚙️
+            <small>ตั้งค่า</small>
+        </div>
+
+    </div>
+
+</div>
 
    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js"></script>
